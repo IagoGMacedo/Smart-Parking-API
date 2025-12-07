@@ -7,7 +7,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -19,23 +18,33 @@ import br.ufrn.imd.smartparking.smartparking.entities.Role;
 import br.ufrn.imd.smartparking.smartparking.entities.User;
 import br.ufrn.imd.smartparking.smartparking.repository.RoleRepository;
 import br.ufrn.imd.smartparking.smartparking.repository.UserRepository;
+import br.ufrn.imd.smartparking.smartparking.service.CurrentUserService;
+import lombok.RequiredArgsConstructor;
+
 
 @RestController
+@RequiredArgsConstructor
 public class UserController {
 
     private final UserRepository userRepository;
     private final RoleRepository roleRepository;
     private final BCryptPasswordEncoder passwordEncoder;
+    private final CurrentUserService currentUserService;
 
-    public UserController(UserRepository userRepository,
-            RoleRepository roleRepository,
-            BCryptPasswordEncoder passwordEncoder) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.passwordEncoder = passwordEncoder;
+    @GetMapping("/me")    
+    public String getMethodName() {
+
+        var user = currentUserService.getCurrentUser();
+
+        return new StringBuilder()
+                .append("Username: ")
+                .append(user.getUsername())
+                .append(" | Roles: ")
+                .append(user.getRoles().stream().map(Role::getName).toList())
+                .toString();
     }
+    
 
-    @Transactional
     @PostMapping("/users")
     public ResponseEntity<Void> newUser(@RequestBody CreateUserDto dto) {
 
